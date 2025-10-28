@@ -1,5 +1,7 @@
-export default function Country() {
+export default function Country({...props}) {
     return (
-        <p>Country component text</p>
+        <div className="container">
+            <h1>{name.common}</h1>
+        </div>
     )
 }
