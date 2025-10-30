@@ -1,32 +1,66 @@
 import { useState, useEffect } from 'react'
-import SearchBar from './Components/SearchBar'
 import Country from './Components/Country';
+import Header from './Components/Header';
+import Footer from './Components/Footer'
 
 function App() {
 
   const [countries, setCountries] = useState([]);
-  const [randCountry, setRandcountry] = useState(null);
+  const [country, setCountry] = useState(null);
+  const [selectedCountry, setSelectedCountry] = useState(null)
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch(`https://restcountries.com/v3.1/all?fields=name`)
+    fetch("https://restcountries.com/v3.1/all?fields=name")
       .then(res => res.json())
-      .then(data => {
-        console.log(data);
-        setCountries(countries);
-        getRandom();
-      })
-  })
+      .then(data => setCountries(data.map(c => c.name.common)))
+      .catch(err => setError("Failed to load countries list"))
+  }, [])
 
-  function getRandom() {
-    setRandcountry(countries.at(Math.floor(Math.random() * countries.length)))
+  const selectCountry = (name) => {
+    let countryName
+    if (name !== "" && name.trim() !== "") {
+      countryName = name
+    } else {
+        if (countries.length > 0) {
+          const randomIndex = Math.floor(Math.random() * countries.length);
+          countryName = countries[randomIndex];
+        }
+      }
+
+    setSelectedCountry(countryName);
+    setError("")
   }
 
+  useEffect(() => {
+    if (!selectedCountry) return
+
+    fetch(`https://restcountries.com/v3.1/name/${encodeURIComponent(selectedCountry)}`)
+      .then(res => res.json())
+      .then(data => setCountry(data[0]))
+      .catch(function () {
+        setError("Unable to download country data.")
+    })
+  }, [selectedCountry])
 
   return (
-    <>
-      <Country props={randCountry} />
-    </>
+    <main>
+      <Header />
+      <Country 
+        country = {country}
+        setCountry = {setCountry}
+        error = {error}
+        setError = {setError}
+        selectedCountry = {selectedCountry}
+        setSelectedCountry = {setSelectedCountry}
+        selectCountry = {selectCountry}
+        countries = {countries}
+        setCountries = {setCountries}
+      />
+      <Footer />
+    </main>
   )
+
 }
 
 export default App
